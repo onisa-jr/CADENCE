@@ -1,0 +1,30 @@
+\begin{table}[t]
+\centering
+\caption{Mathematical Notation and Architectural Terminology.}
+\label{tab:notation}
+\small
+\begin{tabular}{lp{6.2cm}}
+\toprule
+\textbf{Symbol} & \textbf{Description / Meaning} \\
+\midrule
+$\mathcal{D} = \{(X_i, y_i)\}_{i=1}^N$ & Training dataset of $N$ time series instances. \\
+$X \in \mathbb{R}^{C \times L}$ & Input time series with $C$ channels and length $L$. \\
+$y \in \{1, \dots, K\}$ & Categorical ground-truth class label among $K$ classes. \\
+$\omega \in \{-1, 2\}^9, d \in \mathbb{N}$ & MiniRocket convolutional kernel weights and dilation factor. \\
+$\phi_{PPV}(X, \omega, b)$ & Proportion of Positive Values feature extractor. \\
+$F_A \in \mathbb{R}^{N \times D_A}$ & Branch A normalized feature matrix ($D_A = 10,000$). \\
+$W^* \in \mathbb{R}^{D_A \times K}$ & Closed-form Woodbury L2 regularized ridge weight matrix. \\
+$P_A(y = k \mid X)$ & Calibrated posterior probability from Branch A (softmax). \\
+$\phi_H(X)_{g, k}$ & Hydra competing kernel count features ($G=16, k \in \{1,\dots,8\}$). \\
+$q_\alpha(S)$ & Cornish-Fisher quantile approximation at probability $\alpha$. \\
+$\Delta X, \Delta^2 X$ & First difference (velocity) and second difference (acceleration). \\
+$E_b$ & Log-spaced real FFT spectral energy band features. \\
+$F_B \in \mathbb{R}^{N \times D_B}$ & Branch B concatenated feature matrix ($D_B = 1,851$). \\
+$P_B(y = k \mid X)$ & Posterior class probability from ExtraTrees ensemble (Branch B). \\
+$\text{Val}_A, \text{Val}_B$ & Validation classification accuracy on internal 30\% held-out fold. \\
+$\Delta = \text{Val}_A - \text{Val}_B$ & Validation accuracy performance margin. \\
+$\tau$ & Routing threshold margin ($\tau = 0.08$). \\
+$w_A \in [0.15, 0.85]$ & Soft-blending interpolation weight for Branch A. \\
+\bottomrule
+\end{tabular}
+\end{table}

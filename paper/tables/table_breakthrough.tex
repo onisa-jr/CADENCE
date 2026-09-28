@@ -1,0 +1,36 @@
+\begin{table*}[t]
+\centering
+\caption{Selected Per-Dataset Performance Comparisons on 109 UCR Datasets (Mean Accuracy Over 30 Resamples). Showing Top Gains and Deficits of CADENCE Relative to Hydra+MultiRocket and HIVE-COTE 2.0. Differences are expressed in percentage points (pp).}
+\label{tab:breakthrough}
+\small
+\begin{tabular}{lcccccc}
+\toprule
+\textbf{Dataset} & \textbf{Classes ($K$)} & \textbf{Length ($L$)} & \textbf{Hydra+MultiRocket} & \textbf{HIVE-COTE 2.0} & \textbf{CADENCE (Ours)} & \textbf{$\Delta$ vs Hydra+MR (pp)} \\
+\midrule
+\multicolumn{7}{l}{\textit{\textbf{Top Gains over Hydra+MultiRocket}}} \\
+\textbf{SemgHandMovementCh2} & 6 & 1500 & 0.7717 & 0.8619 & \textbf{0.8713} & \textbf{+9.96 pp} \\
+\textbf{PigAirwayPressure} & 52 & 2000 & 0.7234 & 0.9554 & \textbf{0.8220} & \textbf{+9.86 pp} \\
+\textbf{InlineSkate} & 7 & 1882 & 0.5081 & 0.5456 & \textbf{0.6047} & \textbf{+9.66 pp} \\
+\textbf{MiddlePhalanxOutlineAgeGroup} & 3 & 400 & 0.6530 & 0.7175 & \textbf{0.7496} & \textbf{+9.65 pp} \\
+\textbf{DistalPhalanxTW} & 6 & 400 & 0.6969 & 0.7017 & \textbf{0.7746} & \textbf{+7.77 pp} \\
+\textbf{MiddlePhalanxTW} & 6 & 400 & 0.5515 & 0.5924 & \textbf{0.6245} & \textbf{+7.29 pp} \\
+\textbf{PigCVP} & 52 & 2000 & 0.8535 & 0.9290 & \textbf{0.9184} & \textbf{+6.49 pp} \\
+\textbf{Earthquakes} & 2 & 512 & 0.7441 & 0.7482 & \textbf{0.7981} & \textbf{+5.40 pp} \\
+\textbf{FaceFour} & 4 & 350 & 0.9008 & 0.9670 & \textbf{0.9527} & \textbf{+5.19 pp} \\
+\textbf{Lightning2} & 2 & 637 & 0.7574 & 0.8033 & \textbf{0.7902} & \textbf{+3.28 pp} \\
+\midrule
+\multicolumn{7}{l}{\textit{\textbf{Top Gains over HIVE-COTE 2.0}}} \\
+\textbf{DistalPhalanxTW} & 6 & 400 & 0.6969 & 0.7017 & \textbf{0.7746} & +7.29 pp (vs HC2) \\
+\textbf{InlineSkate} & 7 & 1882 & 0.5081 & 0.5456 & \textbf{0.6047} & +5.92 pp (vs HC2) \\
+\textbf{Earthquakes} & 2 & 512 & 0.7441 & 0.7482 & \textbf{0.7981} & +4.99 pp (vs HC2) \\
+\textbf{DiatomSizeReduction} & 4 & 345 & 0.9522 & 0.9223 & \textbf{0.9605} & +3.81 pp (vs HC2) \\
+\midrule
+\multicolumn{7}{l}{\textit{\textbf{Notable Deficits (Failure Analysis)}}} \\
+\textbf{ShapesAll} & 60 & 512 & 0.9483 & 0.9268 & 0.9057 & -4.26 pp \\
+\textbf{Rock} & 4 & 2844 & 0.8640 & 0.8887 & 0.8273 & -3.67 pp \\
+\textbf{EOGHorizontalSignal} & 12 & 3400 & 0.8716 & 0.8155 & 0.8375 & -3.42 pp \\
+\textbf{PigAirwayPressure} & 52 & 2000 & 0.7234 & 0.9554 & 0.8220 & -13.35 pp (vs HC2) \\
+\textbf{EthanolLevel} & 4 & 1751 & 0.7592 & 0.8355 & 0.7479 & -8.77 pp (vs HC2) \\
+\bottomrule
+\end{tabular}
+\end{table*}

@@ -1,0 +1,145 @@
+\documentclass[tikz,border=5pt]{standalone}
+\usepackage{amsmath,amssymb}
+\usepackage{xcolor}
+\usetikzlibrary{shapes,arrows.meta,positioning,calc,fit,backgrounds}
+
+\definecolor{branchA}{HTML}{0072B2}
+\definecolor{branchB}{HTML}{D55E00}
+\definecolor{router}{HTML}{785EF0}
+\definecolor{cadence}{HTML}{009E73}
+\definecolor{cardbg}{HTML}{FFFFFF}
+\definecolor{bordergray}{HTML}{CBD5E1}
+\definecolor{textdark}{HTML}{0F172A}
+
+\begin{document}
+\begin{tikzpicture}[
+    font=\sffamily\small,
+    >=Stealth,
+    node distance=1.2cm and 1.5cm,
+    card/.style={
+        draw=bordergray, fill=cardbg, rounded corners=3pt, thick,
+        inner sep=6pt, align=center, text=textdark, drop shadow
+    },
+    branchA_box/.style={
+        card, draw=branchA, thick, fill=branchA!5
+    },
+    branchB_box/.style={
+        card, draw=branchB, thick, fill=branchB!5
+    },
+    router_box/.style={
+        card, draw=router, thick, fill=router!5
+    },
+    refit_box/.style={
+        card, draw=cadence, thick, fill=cadence!5
+    },
+    flow_arrow/.style={
+        ->, thick, color=textdark!80
+    },
+    pruned_arrow/.style={
+        ->, thick, dashed, color=cadence
+    }
+]
+
+% Nodes
+\node[card] (input) {
+    \textbf{Input Time Series}\\
+    $X \in \mathbb{R}^{1 \times L}$\\
+    \scriptsize $N$ training samples
+};
+
+\node[card, right=1.0cm of input] (split) {
+    \textbf{Safe Validation Split}\\
+    \scriptsize 30\% held-out, stratified\\
+    \scriptsize Singletons ($N_c=1$) kept in train
+};
+
+% Training Phase (Internal Routing)
+\node[branchA_box, above right=0.6cm and 1.2cm of split] (branchA_val) {
+    \textbf{\textcolor{branchA}{Branch A: MiniRocket}}\\[2pt]
+    \scriptsize $\sim$10,000 random conv features\\
+    \scriptsize PPV pooling + StandardScaler\\
+    \scriptsize Closed-form Woodbury Ridge $\to P_A$\\
+    \scriptsize $\text{Val}_A$ Accuracy
+};
+
+\node[branchB_box, below right=0.6cm and 1.2cm of split] (branchB_val) {
+    \textbf{\textcolor{branchB}{Branch B: MomentQuant + ExtraTrees}}\\[2pt]
+    \scriptsize Hydra kernels + Dyadic CF moments ($X, \Delta X, \Delta^2 X$)\\
+    \scriptsize Real-FFT spectral quantiles ($D_B=1,851$)\\
+    \scriptsize 100 ExtraTrees (Shannon entropy) $\to P_B$\\
+    \scriptsize $\text{Val}_B$ Accuracy
+};
+
+\node[router_box, right=1.2cm of split] (router) {
+    \textbf{\textcolor{router}{Meta-Router}}\\[2pt]
+    \scriptsize $\Delta = \text{Val}_A - \text{Val}_B$\\
+    \scriptsize Compare $|\Delta|$ to $\tau = 0.08$
+};
+
+% Regimes
+\node[card, right=1.2cm of router] (regimes) {
+    \textbf{Operating Regimes}\\[2pt]
+    \scriptsize $\Delta > 0.08 \implies$ Pure A (16.5\%)\\
+    \scriptsize $\Delta < -0.08 \implies$ Pure B (8.3\%)\\
+    \scriptsize $|\Delta| \le 0.08 \implies$ Blend (75.2\%)\\
+    \scriptsize $w_A = \text{clip}(0.5 + 2\Delta, 0.15, 0.85)$
+};
+
+% Full Refit Step
+\node[refit_box, right=1.0cm of regimes] (refit) {
+    \textbf{\textcolor{cadence}{100\% Full Refit Step}}\\[2pt]
+    \scriptsize Refit selected expert(s) on\\
+    \scriptsize 100\% of $D_{\text{train}}$ (zero holdout loss)
+};
+
+% Test-Time Inference Path
+\node[card, below=2.5cm of input] (test_in) {
+    \textbf{Test Query Series}\\
+    $X_{\text{test}} \in \mathbb{R}^{1 \times L}$
+};
+
+\node[branchA_box, right=2.0cm of test_in, yshift=0.8cm] (test_branchA) {
+    \textbf{\textcolor{branchA}{Branch A Inference}}\\
+    \scriptsize MiniRocket transform + Ridge\\
+    \scriptsize Softmax probabilities $P_A$
+};
+
+\node[branchB_box, right=2.0cm of test_in, yshift=-0.8cm] (test_branchB) {
+    \textbf{\textcolor{branchB}{Branch B Inference}}\\
+    \scriptsize Hydra + MQ + ExtraTrees\\
+    \scriptsize Class probabilities $P_B$
+};
+
+\node[card, right=2.0cm of test_branchA, yshift=-0.8cm] (blend_test) {
+    \textbf{Inference Aggregator}\\[2pt]
+    \scriptsize If Pure A: $\hat{P} = P_A$ (Prune B)\\
+    \scriptsize If Pure B: $\hat{P} = P_B$ (Prune A)\\
+    \scriptsize If Blend: $\hat{P} = w_A P_A + w_B P_B$
+};
+
+\node[refit_box, right=1.0cm of blend_test] (output) {
+    \textbf{\textcolor{cadence}{Predicted Class $\hat{y}$}}\\[2pt]
+    $\hat{y} = \arg\max_c \hat{P}_c$
+};
+
+% Arrows
+\draw[flow_arrow] (input) -- (split);
+\draw[flow_arrow] (split) |- (branchA_val);
+\draw[flow_arrow] (split) |- (branchB_val);
+\draw[flow_arrow] (branchA_val) -| (router);
+\draw[flow_arrow] (branchB_val) -| (router);
+\draw[flow_arrow] (router) -- (regimes);
+\draw[flow_arrow] (regimes) -- (refit);
+
+\draw[flow_arrow] (test_in) |- (test_branchA);
+\draw[flow_arrow] (test_in) |- (test_branchB);
+\draw[flow_arrow] (test_branchA) -| (blend_test);
+\draw[flow_arrow] (test_branchB) -| (blend_test);
+\draw[flow_arrow] (blend_test) -- (output);
+
+% Dashed conditional pruning indicator
+\draw[pruned_arrow] (refit.south) -- ++(0,-1.0) -| (blend_test.north)
+    node[pos=0.25, right, font=\tiny\bfseries, text=cadence] {Fitted Models};
+
+\end{tikzpicture}
+\end{document}

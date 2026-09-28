@@ -1,0 +1,39 @@
+\begin{table*}[t]
+\centering
+\caption{Comprehensive Benchmark Results across all 109 Datasets of the UCR Archive (30 Resamples). All published baselines are sourced from Dempster et al.~\cite{dempster2023hydra} and Middlehurst et al.~\cite{middlehurst2021hive}. CADENCE ranks \#2 among evaluated classifiers (behind HIVE-COTE 2.0). Pairwise tests against CADENCE report wins/ties/losses and two-sided Wilcoxon signed-rank test $p$-values with Holm-Bonferroni correction ($p_{\text{Holm}}$). Differences are expressed in percentage points (pp).}
+\label{tab:rankings}
+\small
+\begin{tabular}{cllccccc}
+\toprule
+\textbf{Rank} & \textbf{Classifier} & \textbf{Paradigm} & \textbf{Mean Acc} & \textbf{Std} & \textbf{Mean Rank} & \textbf{W / T / L vs Ours} & \textbf{$p_{\text{Holm}}$} \\
+\midrule
+-- & \textit{Oracle Ceiling (Post-hoc)} & \textit{Per-dataset Best} & \textit{0.9067} & \textit{0.1062} & \textit{--} & \textit{--} & \textit{--} \\
+1 & HIVE-COTE 2.0~\cite{middlehurst2021hive} & Heterogeneous Meta-Ensemble & \textbf{0.8895} & 0.1159 & \textbf{6.22} & 63/7/39 & 0.295 \\
+\textbf{2} & \textbf{CADENCE (Ours)} & \textbf{Adaptive Dual-Expert} & \textbf{0.8864} & \textbf{0.1120} & \textbf{8.26} & \textbf{--} & \textbf{--} \\
+3 & Hydra+MultiRocket~\cite{dempster2023hydra} & Convolutional Hybrid & 0.8818 & 0.1218 & 7.67 & 46/7/56 & 1.000 \\
+4 & MultiRocket (100k)~\cite{tan2022multirocket} & Convolutional Pooling & 0.8800 & 0.1218 & 8.03 & 48/7/54 & 1.000 \\
+5 & MultiRocket (50k default)~\cite{tan2022multirocket} & Convolutional Pooling & 0.8797 & 0.1222 & 8.19 & 47/10/52 & 1.000 \\
+6 & HIVE-COTE 1.0~\cite{lines2018hive} & Hierarchical Meta-Ensemble & 0.8786 & 0.1228 & 10.80 & 59/7/43 & 0.048 \\
+7 & TS-CHIEF~\cite{shifaz2020tschief} & Metric / Tree Ensemble & 0.8761 & 0.1281 & 10.52 & 61/7/41 & 0.035 \\
+8 & MultiRocket (10k)~\cite{tan2022multirocket} & Convolutional Pooling & 0.8749 & 0.1254 & 9.83 & 59/6/44 & 0.014 \\
+9 & MiniRocket~\cite{dempster2021minirocket} & Convolutional Transform & 0.8724 & 0.1300 & 11.40 & 72/6/31 & < 0.001 \\
+10 & InceptionTime~\cite{fawaz2020inceptiontime} & Deep ConvNet Ensemble & 0.8721 & 0.1285 & 11.95 & 67/5/37 & 0.050 \\
+11 & Hydra~\cite{dempster2023hydra} & Competing Dilated Kernels & 0.8714 & 0.1319 & 10.45 & 66/5/38 & 0.005 \\
+12 & ROCKET~\cite{dempster2020rocket} & Random Convolutions & 0.8645 & 0.1436 & 11.76 & 76/5/28 & < 0.001 \\
+13 & Arsenal~\cite{middlehurst2021hive} & ROCKET Ridge Ensemble & 0.8636 & 0.1454 & 12.11 & 79/6/24 & < 0.001 \\
+14 & DrCIF~\cite{middlehurst2021hive} & Interval Forest & 0.8618 & 0.1308 & 13.03 & 84/5/20 & < 0.001 \\
+15 & TDE~\cite{middlehurst2021scalable} & Scalable Dictionary Ensemble & 0.8584 & 0.1326 & 14.76 & 79/3/27 & < 0.001 \\
+16 & STC~\cite{middlehurst2021hive} & Shapelet Transform Classifier & 0.8563 & 0.1259 & 16.25 & 92/1/16 & < 0.001 \\
+17 & CIF~\cite{middlehurst2020canonical} & Canonical Interval Forest & 0.8466 & 0.1391 & 16.09 & 93/4/12 & < 0.001 \\
+18 & WEASEL~\cite{schafer2017weasel} & Scalable Word Dictionary & 0.8453 & 0.1377 & 17.33 & 91/1/17 & < 0.001 \\
+19 & S-BOSS~\cite{middlehurst2021scalable} & Sampled Symbolic Fourier & 0.8432 & 0.1449 & 17.46 & 88/1/20 & < 0.001 \\
+20 & BOSS~\cite{schafer2015boss} & Bag-of-SFA-Symbols & 0.8369 & 0.1515 & 18.64 & 91/2/16 & < 0.001 \\
+21 & Proximity Forest~\cite{lucas2019proximity} & Distance Metric Trees & 0.8348 & 0.1547 & 16.70 & 90/5/14 & < 0.001 \\
+22 & cBOSS~\cite{middlehurst2021scalable} & Contractable BOSS & 0.8337 & 0.1504 & 18.68 & 88/3/18 & < 0.001 \\
+23 & ResNet~\cite{fawaz2019deep} & Deep Residual Network & 0.8300 & 0.1706 & 15.67 & 81/5/23 & < 0.001 \\
+24 & MinR (84 kernels)~\cite{dempster2021minirocket} & Minimal ROCKET & 0.8035 & 0.1999 & 17.03 & 80/1/28 & < 0.001 \\
+25 & RISE~\cite{lines2018hive} & Spectral Interval Forest & 0.8016 & 0.1532 & 20.90 & 106/0/3 & < 0.001 \\
+26 & TSF~\cite{deng2013time} & Time Series Forest & 0.7954 & 0.1750 & 21.28 & 105/2/2 & < 0.001 \\
+\bottomrule
+\end{tabular}
+\end{table*}

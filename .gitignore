@@ -1,8 +1,60 @@
-/MultiRocket_Hydra_Ensemble_abdulaziz.xlsx
-/__pycache__
-/custom_based_v1
-/paper
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+.venv/
+
+# Temporary / testing files
+*.tmp
+*.tmp_*
+*.lock
+test_*.pdf
 /test_doc_outline.pdf
 /test_links.pdf
 /test_outline.pdf
+
+# Microsoft Office temporary lock files
+~$*
+
+# OS artifacts
+.DS_Store
+Thumbs.db
+
+# IDE & editors
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Scratch / reference folders
 /timeseries_papers

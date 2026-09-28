@@ -35,9 +35,7 @@ from sklearn.model_selection import StratifiedShuffleSplit
 from aeon.datasets import load_classification
 from joblib import Parallel, delayed
 
-from model import FastUnifiedClassifier
-from model_v2 import DualExpertClassifierV2
-from model_v3 import AdaptiveExpertClassifierV3
+from cadence import CADENCEClassifier
 
 BASELINE_EXCEL = "MultiRocket_Hydra_Ensemble_abdulaziz.xlsx"
 BASELINE_CSV = "ucr_hydra_multirocket.csv"
@@ -74,15 +72,22 @@ def parse_args():
     )
     
     parser.add_argument(
+        "--mode",
+        type=str,
+        default="adaptive",
+        choices=["adaptive", "pure_a", "pure_b", "fixed_blend"],
+        help="CADENCE operating mode: 'adaptive' (default dual-expert), 'pure_a' (Branch A alone), 'pure_b' (Branch B alone), or 'fixed_blend'."
+    )
+    parser.add_argument(
         "--model_version",
         type=str,
-        default="v3",
-        choices=["v1", "v2", "v3"],
-        help="Model architecture: 'v3' (AdaptiveExpertClassifierV3), 'v2' (DualExpertClassifierV2) or 'v1' (FastUnifiedClassifier). Default: 'v3'."
+        default=None,
+        help="[Deprecated alias] Equivalent to --mode."
     )
     # Protocol & performance parameters
     parser.add_argument(
-        "--n_iterations",
+        "--n_iterations", "--resamples",
+        dest="n_iterations",
         type=int,
         default=30,
         help="Total iterations (Seed 0 is original split, Seeds 1 to N-1 are reshuffled). Default: 30."
@@ -92,7 +97,7 @@ def parse_args():
         type=str,
         default="tree",
         choices=["tree", "ridge", "ensemble"],
-        help="Decision head for v1: 'tree' (ExtraTrees), 'ridge' (RidgeCV), or 'ensemble'. Default: 'tree'."
+        help="Decision head type for Branch B. Default: 'tree'."
     )
     parser.add_argument(
         "--n_jobs",
@@ -116,15 +121,19 @@ def parse_args():
     parser.add_argument(
         "--output_dir",
         type=str,
-        default="results_v3",
-        help="Directory to save per-dataset and summary CSV files. Default: 'results_v3'."
+        default="results",
+        help="Directory to save per-dataset and summary CSV files. Default: 'results'."
     )
     parser.add_argument(
         "--force",
         action="store_true",
         help="Force re-evaluation of datasets even if results already exist. Default: False (resume mode)."
     )
-    return parser.parse_args()
+    args = parser.parse_args()
+    if args.model_version is not None:
+        v_map = {"v3": "adaptive", "v2": "fixed_blend", "v1": "pure_b", "adaptive": "adaptive", "pure_a": "pure_a", "pure_b": "pure_b"}
+        args.mode = v_map.get(args.model_version, args.model_version)
+    return args
 
 
 def get_all_dataset_names():
@@ -293,7 +302,8 @@ def _evaluate_single_seed_worker(
     y_all,
     n_train_orig,
     n_test_orig,
-    model_version="v3",
+    mode="adaptive",
+    model_version=None,
     classifier_type="tree",
     model_n_jobs=1,
     X_tr_orig=None,
@@ -327,26 +337,16 @@ def _evaluate_single_seed_worker(
             X_train, y_train = X_all[train_idx], y_all[train_idx]
             X_test, y_test = X_all[test_idx], y_all[test_idx]
 
-        if model_version == "v3":
-            clf = AdaptiveExpertClassifierV3(
-                n_jobs=model_n_jobs,
-                random_state=seed if seed > 0 else 42
-            )
-        elif model_version == "v2":
-            clf = DualExpertClassifierV2(
-                n_jobs=model_n_jobs,
-                random_state=seed if seed > 0 else 42
-            )
-        else:
-            clf = FastUnifiedClassifier(
-                hydra_kernels=8,
-                hydra_groups=16,
-                quant_depth=5,
-                n_fft_bands=16,
-                classifier_type=classifier_type,
-                n_jobs=model_n_jobs,
-                random_state=seed if seed > 0 else 42
-            )
+        eff_mode = mode
+        if model_version is not None:
+            v_map = {"v3": "adaptive", "v2": "fixed_blend", "v1": "pure_b", "adaptive": "adaptive", "pure_a": "pure_a", "pure_b": "pure_b"}
+            eff_mode = v_map.get(model_version, eff_mode)
+
+        clf = CADENCEClassifier(
+            mode=eff_mode,
+            n_jobs=model_n_jobs,
+            random_state=seed if seed > 0 else 42
+        )
         
         # Fit strictly on train partition
         clf.fit(X_train, y_train)
@@ -356,12 +356,18 @@ def _evaluate_single_seed_worker(
         acc = float(np.mean(preds == y_test))
         elapsed = time.perf_counter() - t0
         
+        routing_info = clf.get_routing_info()
+        decision = routing_info.get("decision", "unknown")
+        w_a = routing_info.get("w_a", np.nan)
+        
         return {
             "seed": seed,
             "split_type": split_desc,
             "train_n": len(X_train),
             "test_n": len(X_test),
             "accuracy": acc,
+            "decision": decision,
+            "w_a": w_a,
             "time_sec": elapsed
         }
     except Exception as e:
@@ -381,9 +387,10 @@ def evaluate_single_dataset(
     name,
     n_iterations=30,
     classifier_type="tree",
-    model_version="v3",
+    mode="adaptive",
+    model_version=None,
     n_jobs=4,
-    output_dir="results_v3",
+    output_dir="results",
     baseline_info=None,
     force=False,
     parallel_seeds="auto",
@@ -540,6 +547,7 @@ def evaluate_single_dataset(
                         y_all=y_all,
                         n_train_orig=n_train_orig,
                         n_test_orig=n_test_orig,
+                        mode=mode,
                         model_version=model_version,
                         classifier_type=classifier_type,
                         model_n_jobs=1,
@@ -567,6 +575,7 @@ def evaluate_single_dataset(
                         y_all=y_all,
                         n_train_orig=n_train_orig,
                         n_test_orig=n_test_orig,
+                        mode=mode,
                         model_version=model_version,
                         classifier_type=classifier_type,
                         model_n_jobs=n_jobs,
@@ -688,7 +697,7 @@ def main():
     
     total_ds = len(dataset_list)
     print(f"\nQueue contains {total_ds} dataset(s). Output directory: '{args.output_dir}'")
-    print(f"Model version: {args.model_version.upper()} | Concurrency strategy: {args.parallel_seeds.upper()} (threshold: {args.concurrency_threshold:,})")
+    print(f"Algorithm: CADENCE (mode: {args.mode.upper()}) | Concurrency: {args.parallel_seeds.upper()} (threshold: {args.concurrency_threshold:,})")
     
     for idx, ds in enumerate(dataset_list, start=1):
         print(f"\n>>> [{idx}/{total_ds}] Processing: {ds}")
@@ -699,6 +708,7 @@ def main():
                 name=ds,
                 n_iterations=args.n_iterations,
                 classifier_type=args.classifier_type,
+                mode=args.mode,
                 model_version=args.model_version,
                 n_jobs=args.n_jobs,
                 output_dir=args.output_dir,
