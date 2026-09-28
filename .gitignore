@@ -59,4 +59,4 @@ Thumbs.db
 
 # Scratch / reference folders
 /timeseries_papers
-/paper
+/paper/**
